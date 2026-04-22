@@ -1,0 +1,19 @@
+# ===== OS / System =====
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ===== Editor / IDE =====
+.vscode/
+.idea/
+*.iml
+
+# ===== Temporary / Logs =====
+*.log
+*.tmp
+*.swp
+*.swo
+
+# ===== Local env =====
+.env
+.env.*
