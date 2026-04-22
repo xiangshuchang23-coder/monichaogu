@@ -192,18 +192,49 @@
             {code: '688981', name: '银铲铲游戏', base: 56.70}
         ];
 
+        function saveGameState() {
+            const saveData = {
+                cash: gameState.cash,
+                positions: gameState.positions,
+                stocks: gameState.stocks,
+                gameStartTime: gameState.gameStartTime,
+                savedAt: Date.now()
+            };
+            localStorage.setItem('stockGameState', JSON.stringify(saveData));
+        }
+
+        function loadGameState() {
+            try {
+                const saved = localStorage.getItem('stockGameState');
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    gameState.cash = data.cash;
+                    gameState.positions = data.positions;
+                    gameState.stocks = data.stocks;
+                    gameState.gameStartTime = data.gameStartTime;
+                    return true;
+                }
+            } catch(e) {
+                console.log('加载存档失败，使用新游戏');
+            }
+            return false;
+        }
+
         function initGame() {
-            gameState.stocks = stockNames.map(s => ({
-                ...s,
-                price: s.base,
-                prevPrice: s.base,
-                change: 0,
-                changePercent: 0,
-                history: [s.base]
-            }));
+            if (!loadGameState()) {
+                gameState.stocks = stockNames.map(s => ({
+                    ...s,
+                    price: s.base,
+                    prevPrice: s.base,
+                    change: 0,
+                    changePercent: 0,
+                    history: [s.base]
+                }));
+            }
             
             renderStockList();
             updateUI();
+            updatePositions();
             startGameLoop();
             
             document.getElementById('tradeQuantity').addEventListener('input', updateTradeAmount);
@@ -251,6 +282,7 @@
             
             renderStockList();
             updatePositions();
+            saveGameState();
         }
 
         function renderStockList() {
@@ -367,6 +399,7 @@
             renderSelectedStock();
             renderStockList();
             updatePositions();
+            saveGameState();
         }
 
         function executeSell() {
@@ -405,6 +438,7 @@
             renderSelectedStock();
             renderStockList();
             updatePositions();
+            saveGameState();
         }
 
         function quickBuy(code) {
@@ -500,11 +534,13 @@
         }
 
         function resetGame() {
-            if (confirm('确定要重新开始游戏吗？所有持仓和资金将重置。')) {
+            if (confirm('确定要重新开始游戏吗？所有持仓和资金将重置，存档也将清除。')) {
+                localStorage.removeItem('stockGameState');
                 gameState.cash = 10000;
                 gameState.positions = {};
                 gameState.selectedStock = null;
                 gameState.gameStartTime = Date.now();
+                gameState.stocks = [];
                 
                 document.getElementById('tradeHistory').innerHTML = '<div class="text-gray-400 text-center py-4">暂无交易记录</div>';
                 document.getElementById('selectedStockInfo').innerHTML = '<div class="text-gray-400 text-center py-4">请点击股票进行交易</div>';
